@@ -43,7 +43,7 @@ class NormalizedBlur(ImageProcessor):
 
 class GaussianBlur(ImageProcessor):
 
-    def __int__(self):
+    def __init__(self):
         kernel = np.ones((3, 3))
         kernel[1, :] *= 2
         kernel[:, 1] *= 2
