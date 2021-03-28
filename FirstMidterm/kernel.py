@@ -4,10 +4,11 @@ from abc import ABC, abstractmethod
 
 class Kernel(ABC):
 
-    def __init__(self, k_size, k_x, k_y):
+    def __init__(self, k_size, k_x, k_y, name):
         self.k_size = k_size
         self.k_x = k_x
         self.k_y = k_y
+        self.name = name
 
     @abstractmethod
     def kernel_pad(self, m: np.ndarray, pad_zero: bool):
@@ -25,7 +26,7 @@ class RobertsKernel(Kernel):
     def __init__(self):
         k_x = np.array(([1, 0], [0, -1]))
         k_y = np.array(([0, -1], [1, 0]))
-        super(RobertsKernel, self).__init__(2, k_x, k_y)
+        super(RobertsKernel, self).__init__(2, k_x, k_y, "Roberts_Kernel")
 
     def kernel_pad(self, m, pad_zero: bool):
         if pad_zero:
@@ -43,7 +44,7 @@ class PrewittKernel(Kernel):
         k_size = 3
         k_x = np.array(([1, 0, -1], [1, 0, -1], [1, 0, -1]))
         k_y = k_x.T
-        super(PrewittKernel, self).__init__(k_size, k_x, k_y)
+        super(PrewittKernel, self).__init__(k_size, k_x, k_y, "Prewitt_Kernel")
 
     def kernel_pad(self, m, pad_zero: bool):
         return super(PrewittKernel, self).kernel_pad(m, pad_zero)
@@ -56,7 +57,7 @@ class SobelKernel(Kernel):
         k_x = np.array(([1, 0, -1], [1, 0, -1], [1, 0, -1]))
         k_x[1, :] *= 2
         k_y = k_x.T
-        super(SobelKernel, self).__init__(k_size, k_x, k_y)
+        super(SobelKernel, self).__init__(k_size, k_x, k_y, "Sobel_Kernel")
 
     def kernel_pad(self, m, pad_zero: bool):
         return super(SobelKernel, self).kernel_pad(m, pad_zero)

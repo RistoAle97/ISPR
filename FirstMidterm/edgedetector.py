@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from PIL import Image
+# from PIL import Image
 
 
 class EdgeDetector:
@@ -22,8 +22,10 @@ class EdgeDetector:
 
     def compute(self, image_path, kernel, pad_zero: bool, image_processor):
         image_gray = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2GRAY)
+        # Image.fromarray(image_gray).show()
         if image_processor is not None:
-            image_gray = image_processor.apply(image_gray)
+            image_gray = image_processor.apply(image_gray)  # if we'd like to apply a blur effect
+            # Image.fromarray(image_gray).show()
 
         image_gray = kernel.kernel_pad(image_gray, pad_zero)
         i_x, i_y = self.__convolution(image_gray, kernel)
@@ -31,6 +33,11 @@ class EdgeDetector:
         return i_x, i_y, magnitude
 
     @staticmethod
-    def plot_filtered_image(i_x, i_y, magnitude):
+    def plot_filtered_image(i_x, i_y, magnitude, i_map, kernel, image_processor):
         image = np.concatenate((i_x, i_y, magnitude), 0)
-        Image.fromarray(image).show()
+        image_name = "Images/" + i_map + kernel.name  # + ", " + image_processor.name
+        if image_processor is not None:
+            image_name += "_" + image_processor.name
+
+        image_name += ".png"
+        cv2.imwrite(image_name, image)
