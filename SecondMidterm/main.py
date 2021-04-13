@@ -11,4 +11,4 @@ if __name__ == '__main__':
     tr_set = np.array([np.reshape(pattern, 784) for pattern in tr_set])
     ts_set = np.array([np.reshape(pattern, 784) for pattern in ts_set])
     rbm = RBM(tr_set.shape[1], 100)
-    rbm.train(tr_set, 1, 1)
+    rbm.train(tr_set, 0.01, 1, True)
