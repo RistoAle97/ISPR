@@ -87,7 +87,7 @@ class RBM:
         y = list()
         bin_patterns = self.__clamp_data(patterns)
         for bin_pattern in bin_patterns:
-            h_nets = np.dot(self.weights, bin_pattern) + self.visible_bias
+            h_nets = np.dot(self.weights, bin_pattern) + self.hidden_bias
             y.append(self.__sigmoid(h_nets))
 
         return np.array(y)
