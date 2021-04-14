@@ -1,4 +1,4 @@
-# import keras
+import keras
 from keras.datasets import mnist
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +15,21 @@ if __name__ == '__main__':
     ts_set = np.array([np.reshape(pattern, 784) for pattern in ts_set])
     rbm = RBM(tr_set.shape[1], 100)
     t = time.time()
-    rbm.train(tr_set, 0.3, 5, True)
+    # rbm.train(tr_set, 0.3, 3, True)
     print(time.time() - t)
-    encodings = rbm.encode(tr_set, False)
+    tr_encodings = rbm.encode(tr_set, True)
+    tr_labels = keras.utils.to_categorical(tr_labels)
+    ts_labels = keras.utils.to_categorical(ts_labels)
+    model = keras.models.Sequential()
+    # model.add(keras.layers.Dense(10, activation="softmax", input_dim=100))
+    model.add(keras.layers.Dense(10, activation="softmax", input_dim=100))
+    model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+    model.fit(tr_encodings, tr_labels, epochs=30)
+    out_train = model.predict(tr_encodings)
+    values = model.evaluate(tr_encodings, tr_labels, verbose=0)
+    print("Training Error: {0}, Training accuracy: {1}".format(values[0], values[1]))
+    ts_encodings = rbm.encode(ts_set, False)
+    out_test = model.predict(ts_encodings)
+    values = model.evaluate(ts_encodings, ts_labels, verbose=0)
+    print("Test Error: {0}, Test accuracy: {1}".format(values[0], values[1]))
+    # out_test = model.predict(encodings)
