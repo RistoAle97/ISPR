@@ -1,4 +1,5 @@
 import numpy as np
+import tqdm
 import csv
 
 
@@ -70,32 +71,17 @@ class RBM:
             nodes_p = self.__sigmoid(nets)
             return nodes_p
 
-    def train(self, tr_set, eta, epochs: int, save_weights: bool):
+    def train(self, tr_set, eta, alpha, epochs: int, save_weights: bool = False):
         for i in range(epochs):
             # np.random.shuffle(tr_set)
-            bin_tr_set = self.__clamp_data(tr_set)
-            # mean_error = 0
-            for pattern, bin_pattern in zip(tr_set, bin_tr_set):
-                # wake
-                # h_nets = np.dot(self.weights, bin_pattern) + self.hidden_bias
-                # h_p = self.__sigmoid(h_nets)
-                # wake = np.outer(h_p, pattern)
+            for pattern in tqdm.tqdm(tr_set, desc="Training {0}, Epoch {1}".format(self.name, i)):
                 h_p, wake = self.__contrastive_divergence_step(pattern, "pos_data")
-
-                # dream
-                # bin_h_p = self.__clamp_data(h_p)
-                # v_nets = np.dot(self.weights.T, bin_h_p) + self.visible_bias
-                # v_p = self.__sigmoid(v_nets)
                 v_p = self.__contrastive_divergence_step(h_p, "reconstruction")
-                # bin_reconstruction = self.__clamp_data(v_p)
-                # neg_h_nets = np.dot(self.weights, bin_reconstruction) + self.hidden_bias
-                # neg_h_p = self.__sigmoid(neg_h_nets)
-                # dream = np.outer(neg_h_p, bin_reconstruction)
                 bin_reconstruction, neg_h_p, dream = self.__contrastive_divergence_step(v_p, "neg_data")
 
-                self.weights += eta * (wake - dream)/len(tr_set)
-                self.visible_bias += eta * (np.sum(pattern) - np.sum(bin_reconstruction)) / len(tr_set)
-                self.hidden_bias += eta * (np.sum(h_p) - np.sum(neg_h_p)) / len(tr_set)
+                self.weights += eta * (wake - dream) / 100  # len(tr_set)
+                self.visible_bias += eta * (np.sum(pattern) - np.sum(bin_reconstruction)) / 100  # len(tr_set)
+                self.hidden_bias += eta * (np.sum(h_p) - np.sum(neg_h_p)) / 100  # len(tr_set)
                 # mean_error += np.sum(np.power(bin_pattern - bin_reconstruction, 2))
 
             # print("Epoch {0}, mean error {1}".format(i, mean_error/len(tr_set)))
@@ -108,10 +94,20 @@ class RBM:
             self.__load_weights("weights_{0}.csv".format(self.name))
 
         y = list()
-
         bin_patterns = self.__clamp_data(patterns)
         for bin_pattern in bin_patterns:
             h_nets = np.dot(self.weights, bin_pattern) + self.hidden_bias
             y.append(self.__sigmoid(h_nets))
+
+        return np.array(y)
+
+    def reconstruction(self, patterns, load_weights: bool):
+        if load_weights:
+            self.__load_weights("weights_{0}.csv".format(self.name))
+
+        y = list()
+        for pattern in patterns:
+            h_p, wake = self.__contrastive_divergence_step(pattern, "pos_data")
+            y.append(self.__contrastive_divergence_step(h_p, "reconstruction"))
 
         return np.array(y)
