@@ -72,8 +72,9 @@ class RBM:
             return nodes_p
 
     def train(self, tr_set, eta, alpha, epochs: int, save_weights: bool = False):
+        tr_set_copy = np.copy(tr_set)
         for i in range(epochs):
-            # np.random.shuffle(tr_set)
+            np.random.shuffle(tr_set_copy)
             for pattern in tqdm.tqdm(tr_set, desc="Training {0}, Epoch {1}".format(self.name, i)):
                 h_p, wake = self.__contrastive_divergence_step(pattern, "pos_data")
                 v_p = self.__contrastive_divergence_step(h_p, "reconstruction")
@@ -96,6 +97,7 @@ class RBM:
         y = list()
         bin_patterns = self.__clamp_data(patterns)
         for bin_pattern in bin_patterns:
+        # for bin_pattern in tqdm.tqdm(bin_patterns, desc="{0} encoding".format(self.name)):
             h_nets = np.dot(self.weights, bin_pattern) + self.hidden_bias
             y.append(self.__sigmoid(h_nets))
 
