@@ -1,7 +1,7 @@
 import keras
 from keras.datasets import mnist
 # import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from ISPR.SecondMidterm.RBM import *
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
 
@@ -17,9 +17,10 @@ if __name__ == '__main__':
     tr_labels_one_hot = keras.utils.to_categorical(tr_labels)
     ts_labels_one_hot = keras.utils.to_categorical(ts_labels)
     model = keras.models.Sequential()
-    model.add(keras.layers.Dense(200, activation="relu", input_dim=100))
-    model.add(keras.layers.Dense(150, activation="relu"))
-    model.add(keras.layers.Dense(100, activation="relu"))
+    model.add(keras.layers.Dense(150, activation="relu", input_dim=100))
+    model.add(keras.layers.Dense(80, activation="relu"))
+    # model.add(keras.layers.Dense(100, activation="relu"))
+    model.add(keras.layers.Dense(50, activation="relu"))
     model.add(keras.layers.Dense(10, activation="softmax"))
     model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
     model.fit(tr_encodings, tr_labels_one_hot, epochs=10)
