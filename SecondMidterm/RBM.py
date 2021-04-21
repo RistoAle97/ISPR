@@ -16,7 +16,7 @@ class RBM:
 
     @staticmethod
     def __clamp_data(x):
-        return np.where(x > np.random.rand(*x.shape), 1, 0)  # .astype("float32")
+        return np.where(x > np.random.rand(*x.shape), 1, 0)
 
     @staticmethod
     def __sigmoid(x):
@@ -73,6 +73,9 @@ class RBM:
 
     def train(self, tr_set, eta, alpha, epochs: int, batch_size: int, save_weights: bool = False):
         tr_set_copy = np.copy(tr_set)
+        d_w = np.zeros_like(self.weights)
+        d_visible = np.zeros_like(self.visible_bias)
+        d_hidden = np.zeros_like(self.hidden_bias)
         for i in range(epochs):
             np.random.shuffle(tr_set_copy)
             for pattern in tqdm.tqdm(tr_set, desc="Training {0}, Epoch {1}".format(self.name, i)):
@@ -80,9 +83,12 @@ class RBM:
                 v_p = self.__contrastive_divergence_step(h_p, "reconstruction")
                 bin_reconstruction, neg_h_p, dream = self.__contrastive_divergence_step(v_p, "neg_data")
 
-                self.weights += eta * (wake - dream) / batch_size  # len(tr_set)
-                self.visible_bias += eta * (np.sum(pattern) - np.sum(bin_reconstruction)) / batch_size
-                self.hidden_bias += eta * (np.sum(h_p) - np.sum(neg_h_p)) / batch_size
+                d_w = alpha * d_w + (eta / batch_size) * (wake - dream)
+                d_visible = alpha * d_visible + (eta / batch_size) * (np.sum(pattern) - np.sum(bin_reconstruction))
+                d_hidden = alpha * d_hidden + (eta/batch_size) * (np.sum(h_p) - np.sum(neg_h_p))
+                self.weights += d_w
+                self.visible_bias += d_visible
+                self.hidden_bias += d_hidden
 
         if save_weights:
             self.__save_weights("weights_{0}.csv".format(self.name))
