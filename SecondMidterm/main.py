@@ -4,7 +4,9 @@ from keras.datasets import mnist
 import matplotlib.pyplot as plt
 # import seaborn as sn
 from ISPR.SecondMidterm.RBM import *
+import cv2
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
+# from ISPR.SecondMidterm.live_recognition import *
 
 if __name__ == '__main__':
     (tr_set, tr_labels), (ts_set, ts_labels) = mnist.load_data()
@@ -24,8 +26,8 @@ if __name__ == '__main__':
     model.add(keras.layers.Dense(50, activation="relu"))
     model.add(keras.layers.Dense(10, activation="softmax"))
     model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
-    model.fit(tr_encodings, tr_labels_one_hot, epochs=10)
-    model.save("mnist_classifier.h5")'''
+    model.fit(tr_encodings, tr_labels_one_hot, epochs=10, workers=8, use_multiprocessing=True)'''
+    # model.save("mnist_classifier.h5")
     model = keras.models.load_model("mnist_classifier.h5")
     out_train = model.predict(tr_encodings)
     values = model.evaluate(tr_encodings, tr_labels_one_hot, verbose=0)
@@ -42,7 +44,7 @@ if __name__ == '__main__':
     recall_ts = recall_score(ts_labels, np.argmax(out_test, axis=1), average=None)
     f_score_ts = f1_score(ts_labels, np.argmax(out_test, axis=1), average=None)
     print("Test Error: {0}, Test accuracy: {1}".format(values[0], values[1]))
-    ConfusionMatrixDisplay(confusion_matrix_tr).plot()
+    ConfusionMatrixDisplay(confusion_matrix_tr).plot(cmap="binary")
     plt.title("Confusion Matrix Training")
     plt.show()
     # plt.savefig("conf_matrix_tr.png")
