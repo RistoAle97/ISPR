@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from ISPR.SecondMidterm.RBM import *
 # import cv2
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
-from ISPR.SecondMidterm.mnist_detector import *
+from ISPR.SecondMidterm.mnist_recognition import *
 
 if __name__ == '__main__':
     (tr_set, tr_labels), (ts_set, ts_labels) = mnist.load_data()
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     model.fit(tr_encodings, tr_labels_one_hot, epochs=10, workers=8, use_multiprocessing=True)'''
     # model.save("mnist_classifier.h5")
     model = keras.models.load_model("mnist_classifier.h5")
-    mnist_detector = MnistDetector(rbm, model)
+    mnist_detector = MnistLiveRecognition(rbm, model)
     # mnist_detector.live_recognition()
     out_train = model.predict(tr_encodings)
     classes_tr = np.argmax(out_train, axis=1)
