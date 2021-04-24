@@ -4,9 +4,9 @@ from keras.datasets import mnist
 import matplotlib.pyplot as plt
 # import seaborn as sn
 from ISPR.SecondMidterm.RBM import *
-import cv2
+# import cv2
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
-# from ISPR.SecondMidterm.live_recognition import *
+from ISPR.SecondMidterm.mnist_detector import *
 
 if __name__ == '__main__':
     (tr_set, tr_labels), (ts_set, ts_labels) = mnist.load_data()
@@ -29,26 +29,30 @@ if __name__ == '__main__':
     model.fit(tr_encodings, tr_labels_one_hot, epochs=10, workers=8, use_multiprocessing=True)'''
     # model.save("mnist_classifier.h5")
     model = keras.models.load_model("mnist_classifier.h5")
+    mnist_detector = MnistDetector(rbm, model)
+    # mnist_detector.live_recognition()
     out_train = model.predict(tr_encodings)
+    classes_tr = np.argmax(out_train, axis=1)
     values = model.evaluate(tr_encodings, tr_labels_one_hot, verbose=0)
     print("Training Error: {0}, Training accuracy: {1}".format(values[0], values[1]))
-    confusion_matrix_tr = confusion_matrix(tr_labels, np.argmax(out_train, axis=1))
-    precision = precision_score(tr_labels, np.argmax(out_train, axis=1), average=None)
-    recall = recall_score(tr_labels, np.argmax(out_train, axis=1), average=None)
-    f_score = f1_score(tr_labels, np.argmax(out_train, axis=1), average=None)
+    confusion_matrix_tr = confusion_matrix(tr_labels, classes_tr)
+    precision = precision_score(tr_labels, classes_tr, average=None)
+    recall = recall_score(tr_labels, classes_tr, average=None)
+    f_score = f1_score(tr_labels, classes_tr, average=None)
+
     ts_encodings = rbm.encode(ts_set, False)
     out_test = model.predict(ts_encodings)
+    classes_ts = np.argmax(out_test, axis=1)
     values = model.evaluate(ts_encodings, ts_labels_one_hot, verbose=0)
-    confusion_matrix_ts = confusion_matrix(ts_labels, np.argmax(out_test, axis=1))
-    precision_ts = precision_score(ts_labels, np.argmax(out_test, axis=1), average=None)
-    recall_ts = recall_score(ts_labels, np.argmax(out_test, axis=1), average=None)
-    f_score_ts = f1_score(ts_labels, np.argmax(out_test, axis=1), average=None)
+    confusion_matrix_ts = confusion_matrix(ts_labels, classes_ts)
+    precision_ts = precision_score(ts_labels, classes_ts, average=None)
+    recall_ts = recall_score(ts_labels, classes_ts, average=None)
+    f_score_ts = f1_score(ts_labels, classes_ts, average=None)
     print("Test Error: {0}, Test accuracy: {1}".format(values[0], values[1]))
-    ConfusionMatrixDisplay(confusion_matrix_tr).plot(cmap="binary")
+
+    ConfusionMatrixDisplay(confusion_matrix_tr).plot()
     plt.title("Confusion Matrix Training")
     plt.show()
-    # plt.savefig("conf_matrix_tr.png")
-    # plt.savefig("")
     ConfusionMatrixDisplay(confusion_matrix_ts).plot()
     plt.title("Confusion Matrix Test")
     plt.show()

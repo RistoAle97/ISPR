@@ -99,6 +99,13 @@ class RBM:
 
         y = list()
         bin_patterns = self.__clamp_data(patterns)
+        # shape = bin_patterns.shape
+        if len(bin_patterns.shape) == 1:
+            bin_patterns_list = list()
+            bin_patterns_list.append(bin_patterns)
+            bin_patterns = bin_patterns_list
+            # bin_patterns = list(bin_patterns)
+
         for bin_pattern in bin_patterns:
             h_nets = np.dot(self.weights, bin_pattern) + self.hidden_bias
             y.append(self.__sigmoid(h_nets))
