@@ -1,8 +1,6 @@
 import cv2
-# import numpy as np
 import keras
 from ISPR.SecondMidterm.RBM import *
-# from PIL import Image
 
 
 class MnistLiveRecognition:
@@ -39,7 +37,5 @@ class MnistLiveRecognition:
 
             if cv2.waitKey(1) == ord("q"):
                 break
-            # elif cv2.waitKey(1) == ord("i"):
-            #    self.is_inferecing = not self.is_inferecing
 
         cp.release()

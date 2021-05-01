@@ -99,7 +99,6 @@ class RBM:
 
         y = list()
         bin_patterns = self.__stochastic_data(patterns)
-        # shape = bin_patterns.shape
         if len(bin_patterns.shape) == 1:
             bin_patterns_list = list()
             bin_patterns_list.append(bin_patterns)
@@ -112,7 +111,7 @@ class RBM:
 
         return np.array(y)
 
-    def reconstruction(self, patterns, load_weights: bool):
+    '''def reconstruction(self, patterns, load_weights: bool):
         if load_weights:
             self.__load_weights("weights_{0}.csv".format(self.name))
 
@@ -121,4 +120,4 @@ class RBM:
             h_p, wake = self.__contrastive_divergence_step(pattern, "pos_data")
             y.append(self.__contrastive_divergence_step(h_p, "reconstruction"))
 
-        return np.array(y)
+        return np.array(y)'''

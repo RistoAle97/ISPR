@@ -86,23 +86,3 @@ class Model:
             for p, r, f, i in zip(precision, recall, f_score, np.arange(len(precision))):
                 print("Value: {0}, Precision: {1}, Recall: {2}, F1: {3}".format(i, p, r, f))
         return precision, recall, f_score
-
-    '''def add_encoder(self, encoder: RBM = None, n_visible=None, n_hidden=None):
-        if self.classifier:
-            raise Exception("Can't add encoder when there's already a classifier in the model")
-        else:
-            pass
-        pass'''
-    # def train(self, tr_set, tr_labels, ):
-    '''def add_encoder(self, encoder: RBM, n_visible=None, n_hidden=None):
-        # if self.encoder[-1] is None:
-        if not self.encoder:
-            if encoder:
-                self.encoder.append(encoder)
-            else:
-                self.encoder.append(RBM(n_visible, n_hidden))
-        # else:
-            # self.encoder.append()
-
-    def add_classifier(self, classifier: keras.models.Sequential, activation:None=list, layers_dimension:None=list):
-        # self.encoder = RBM()'''
