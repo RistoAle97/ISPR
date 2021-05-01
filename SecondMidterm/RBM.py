@@ -15,7 +15,7 @@ class RBM:
         RBM.rbm_id += 1
 
     @staticmethod
-    def __clamp_data(x):
+    def __stochastic_data(x):
         return np.where(x > np.random.rand(*x.shape), 1, 0)
 
     @staticmethod
@@ -56,7 +56,7 @@ class RBM:
             print("It was impossible to retrieve or read data on file " + file)
 
     def __contrastive_divergence_step(self, values, step: str):
-        bin_values = self.__clamp_data(values)
+        bin_values = self.__stochastic_data(values)
         if step == "pos_data" or step == "neg_data":
             nets = np.dot(self.weights, bin_values) + self.hidden_bias
             nodes_p = self.__sigmoid(nets)
@@ -98,7 +98,7 @@ class RBM:
             self.__load_weights("weights_{0}.csv".format(self.name))
 
         y = list()
-        bin_patterns = self.__clamp_data(patterns)
+        bin_patterns = self.__stochastic_data(patterns)
         # shape = bin_patterns.shape
         if len(bin_patterns.shape) == 1:
             bin_patterns_list = list()
