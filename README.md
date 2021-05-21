@@ -12,3 +12,4 @@ Implement from scratch an RBM and apply it to DSET3. The RBM should be implement
 3. Train a simple classifier (e.g. any simple classifier in scikit) to recognize the MNIST digits using as inputs their encoding obtained at step 2. Use the standard training/test split. Show the resulting confusion matrices (training and test) in your presentation.
 
 (Alternative to step 3, optional) Step 3 can as well be realized by placing a softmax layer after the RBM: if you are up for it, feel free to solve the assignment this way.
+## Midterm 3 - 
