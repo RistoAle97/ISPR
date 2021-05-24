@@ -22,6 +22,17 @@ def build_model():
     return model
 
 
+def run_model(model, tr_ts_set, tr_ts_labels, set_labels: str, plot_conf_matrix: bool):
+    classes_labels = np.argmax(model.predict(tr_ts_set), axis=1)
+    values = model.evaluate(tr_ts_set, tr_ts_labels, verbose=0)
+    print("{0} Error: {1}, {0} accuracy: {2}".format(set_labels, values[0], values[1]))
+    if plot_conf_matrix:
+        conf_matrix = confusion_matrix(tr_ts_labels, classes_labels)
+        ConfusionMatrixDisplay(conf_matrix).plot()
+        plt.title("Confusion Matrix {0}".format(set_labels))
+        plt.show()
+
+
 if __name__ == '__main__':
     (tr_set, tr_labels), (ts_set, ts_labels) = cifar10.load_data()
     tr_set = tr_set.astype("float32") / 255
@@ -32,18 +43,5 @@ if __name__ == '__main__':
 
     m = build_model()
     m.fit(tr_set, tr_labels_one_hot, epochs=20, workers=8, use_multiprocessing=True)
-    classes_tr = np.argmax(m.predict(tr_set), axis=1)
-    values = m.evaluate(tr_set, tr_labels_one_hot, verbose=0)
-    print("Training Error: {0}, Training accuracy: {1}".format(values[0], values[1]))
-    confusion_matrix_tr = confusion_matrix(tr_labels, classes_tr)
-    ConfusionMatrixDisplay(confusion_matrix_tr).plot()
-    plt.title("Confusion Matrix Training")
-    plt.show()
-
-    classes_ts = np.argmax(m.predict(tr_set), axis=1)
-    values = m.evaluate(ts_set, ts_labels_one_hot, verbose=0)
-    print("Test Error: {0}, Test accuracy: {1}".format(values[0], values[1]))
-    confusion_matrix_ts = confusion_matrix(ts_labels, classes_ts)
-    ConfusionMatrixDisplay(confusion_matrix_ts).plot()
-    plt.title("Confusion Matrix Test")
-    plt.show()
+    run_model(m, tr_set, tr_labels_one_hot, "Training", True)
+    run_model(m, ts_set, ts_labels_one_hot, "Test", True)
