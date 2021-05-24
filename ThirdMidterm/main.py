@@ -1,22 +1,24 @@
 from keras.datasets import cifar10
-import keras
+from keras.models import Sequential
+from keras.utils import to_categorical
+from keras.layers import Conv2D, MaxPool2D, Flatten, Dropout, Dense
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 def build_model():
-    model = keras.models.Sequential()
-    model.add(keras.layers.Conv2D(32, 3, padding="same", activation="relu", input_shape=[32, 32, 3]))
-    model.add(keras.layers.Conv2D(32, 3, padding="same", activation="relu"))
-    model.add(keras.layers.MaxPool2D(2, 2, padding="same"))
-    model.add(keras.layers.Conv2D(32, 3, padding="same", activation="relu"))
-    model.add(keras.layers.Conv2D(32, 3, padding="same", activation="relu"))
-    model.add(keras.layers.MaxPool2D(2, 2, padding="same"))
-    model.add(keras.layers.Flatten())
-    model.add(keras.layers.Dropout(0.5))
-    model.add(keras.layers.Dense(256, activation="relu"))
-    model.add(keras.layers.Dense(10, activation="softmax"))
+    model = Sequential()
+    model.add(Conv2D(32, 3, padding="same", activation="relu", input_shape=[32, 32, 3]))
+    model.add(Conv2D(32, 3, padding="same", activation="relu"))
+    model.add(MaxPool2D(2, 2, padding="same"))
+    model.add(Conv2D(32, 3, padding="same", activation="relu"))
+    model.add(Conv2D(32, 3, padding="same", activation="relu"))
+    model.add(MaxPool2D(2, 2, padding="same"))
+    model.add(Flatten())
+    model.add(Dropout(0.5))
+    model.add(Dense(256, activation="relu"))
+    model.add(Dense(10, activation="softmax"))
     model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
     model.summary()
     return model
@@ -38,8 +40,8 @@ if __name__ == '__main__':
     tr_set = tr_set.astype("float32") / 255
     ts_set = ts_set.astype("float32") / 255
     classes = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
-    tr_labels_one_hot = keras.utils.to_categorical(tr_labels)
-    ts_labels_one_hot = keras.utils.to_categorical(ts_labels)
+    tr_labels_one_hot = to_categorical(tr_labels)
+    ts_labels_one_hot = to_categorical(ts_labels)
 
     m = build_model()
     m.fit(tr_set, tr_labels_one_hot, epochs=20, workers=8, use_multiprocessing=True)
