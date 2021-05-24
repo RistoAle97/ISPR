@@ -1,6 +1,6 @@
-from ISPR.kernel import *
-from ISPR.edgedetector import *
-from ISPR.image_processor import *
+from kernel import *
+from edgedetector import *
+from image_processor import *
 
 
 if __name__ == '__main__':

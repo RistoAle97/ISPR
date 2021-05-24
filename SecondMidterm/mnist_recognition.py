@@ -1,6 +1,6 @@
 import cv2
 import keras
-from ISPR.SecondMidterm.RBM import *
+from SecondMidterm.RBM import *
 
 
 class MnistLiveRecognition:

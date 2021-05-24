@@ -3,10 +3,10 @@ from keras.datasets import mnist
 # import numpy as np
 import matplotlib.pyplot as plt
 # import seaborn as sn
-from ISPR.SecondMidterm.RBM import *
+from SecondMidterm.RBM import *
 # import cv2
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
-from ISPR.SecondMidterm.mnist_recognition import *
+from SecondMidterm.mnist_recognition import *
 from scipy.ndimage.interpolation import rotate
 from PIL import Image
 
