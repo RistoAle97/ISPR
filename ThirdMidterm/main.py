@@ -24,9 +24,9 @@ def build_model():
     return model
 
 
-def run_model(model, tr_ts_set, tr_ts_labels, set_labels: str, plot_conf_matrix: bool):
+def run_model(model, tr_ts_set, tr_ts_labels, tr_ts_labels_one_hot, set_labels: str, plot_conf_matrix: bool):
     classes_labels = np.argmax(model.predict(tr_ts_set), axis=1)
-    values = model.evaluate(tr_ts_set, tr_ts_labels, verbose=0)
+    values = model.evaluate(tr_ts_set, tr_ts_labels_one_hot, verbose=0)
     print("{0} Error: {1}, {0} accuracy: {2}".format(set_labels, values[0], values[1]))
     if plot_conf_matrix:
         conf_matrix = confusion_matrix(tr_ts_labels, classes_labels)
@@ -44,6 +44,6 @@ if __name__ == '__main__':
     ts_labels_one_hot = to_categorical(ts_labels)
 
     m = build_model()
-    m.fit(tr_set, tr_labels_one_hot, epochs=20, workers=8, use_multiprocessing=True)
-    run_model(m, tr_set, tr_labels_one_hot, "Training", True)
-    run_model(m, ts_set, ts_labels_one_hot, "Test", True)
+    m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
+    run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
+    run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
