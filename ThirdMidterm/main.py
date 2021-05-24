@@ -9,6 +9,8 @@ if __name__ == '__main__':
     tr_set = tr_set.astype("float32") / 255
     ts_set = ts_set.astype("float32") / 255
     classes = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+    tr_labels_one_hot = keras.utils.to_categorical(tr_labels)
+    ts_labels_one_hot = keras.utils.to_categorical(ts_labels)
 
     model = keras.models.Sequential()
     model.add(keras.layers.Conv2D(32, 3, padding="same", activation="relu", input_shape=[32, 32, 3]))
@@ -25,7 +27,6 @@ if __name__ == '__main__':
     model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
     model.summary()
 
-    tr_labels_one_hot = keras.utils.to_categorical(tr_labels)
     model.fit(tr_set, tr_labels_one_hot, epochs=30, workers=8, use_multiprocessing=True)
     classes_tr = np.argmax(model.predict(tr_set), axis=1)
     values = model.evaluate(tr_set, tr_labels_one_hot, verbose=0)
@@ -35,7 +36,6 @@ if __name__ == '__main__':
     plt.title("Confusion Matrix Training")
     plt.show()
 
-    ts_labels_one_hot = keras.utils.to_categorical(ts_labels)
     classes_ts = np.argmax(model.predict(tr_set), axis=1)
     values = model.evaluate(ts_set, ts_labels_one_hot, verbose=0)
     print("Test Error: {0}, Test accuracy: {1}".format(values[0], values[1]))
