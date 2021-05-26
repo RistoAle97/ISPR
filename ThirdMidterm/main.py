@@ -83,7 +83,6 @@ def adversary_pattern(model, pattern, label, eps=2/255.0):
 
 def attack_pattern(model, pattern, label, eps, predict: bool, image_reshape, print_prediction: bool):
     adversary_image = adversary_pattern(m, pattern, label, eps=eps)
-    adversary_image = np.clip(adversary_image * 255, 0, 255).astype("uint8")
     if predict:
         out_adversary = np.argmax(model.predict(adversary_image))
         out_pattern = np.argmax(model.predict(pattern.reshape(1, 32, 32, 3)))
@@ -92,6 +91,7 @@ def attack_pattern(model, pattern, label, eps, predict: bool, image_reshape, pri
                   format(classes[np.argmax(label)], classes[out_pattern], classes[out_adversary]))
 
     adversary_image = adversary_image.reshape((32, 32, 3))
+    adversary_image = np.clip(adversary_image * 255, 0, 255).astype("uint8")
     image = np.copy(pattern) * 255
     if image_reshape:
         adversary_image = resize(adversary_image, image_reshape) * 255
@@ -104,9 +104,9 @@ def attack_pattern(model, pattern, label, eps, predict: bool, image_reshape, pri
 def add_noise_set(model, patterns, labels, size, eps):
     patterns_adversary_list = np.copy(patterns)
     if size != len(patterns):
-        patterns_to_attack = np.random.choice(np.arange(len(ts_set)), size)
+        patterns_to_attack = np.random.choice(np.arange(len(patterns)), size)
     else:
-        patterns_to_attack = patterns
+        patterns_to_attack = np.arange(len(patterns))
 
     for i in patterns_to_attack:
         patterns_adversary_list[i] = adversary_pattern(model, patterns[i], labels[i], eps=eps).reshape(32, 32, 3)
@@ -125,9 +125,9 @@ if __name__ == '__main__':
     # m = build_model()
     # m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
     m = models.load_model("cifar_classifier.h5")
-    run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
-    run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
+    # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
+    # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
-    attack_pattern(m, ts_set[139], ts_labels_one_hot[139], 0.01, True, None, True)
+    attack_pattern(m, ts_set[0], ts_labels_one_hot[0], 0.1, True, None, True)
     ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), 0.01)
     run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(0.01), True)
