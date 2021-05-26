@@ -1,14 +1,15 @@
 from keras.datasets import cifar10
 from keras.models import Sequential
 from keras.utils import to_categorical
-from keras.layers import Conv2D, MaxPool2D, Flatten, Dropout, Dense
+from keras.layers import Conv2D, MaxPool2D, Flatten, Dropout, Dense, BatchNormalization
+from keras import regularizers, models
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 def build_model():
-    model = Sequential()
+    '''model = Sequential()
     model.add(Conv2D(32, 3, padding="same", activation="relu", input_shape=[32, 32, 3]))
     model.add(Conv2D(32, 3, padding="same", activation="relu"))
     model.add(MaxPool2D(2, 2, padding="same"))
@@ -19,6 +20,35 @@ def build_model():
     model.add(Dropout(0.5))
     model.add(Dense(256, activation="relu"))
     model.add(Dense(10, activation="softmax"))
+    model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+    model.summary()'''
+    weight_decay = 1e-4
+    model = Sequential()
+    model.add(Conv2D(32, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay),
+                     input_shape=(32, 32, 3)))
+    model.add(BatchNormalization())
+    model.add(Conv2D(32, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(MaxPool2D((2, 2), 2))
+    model.add(Dropout(0.2))
+
+    model.add(Conv2D(64, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(Conv2D(64, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(MaxPool2D((2, 2), 2))
+    model.add(Dropout(0.3))
+
+    model.add(Conv2D(128, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(Conv2D(128, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(MaxPool2D((2, 2), 2))
+    model.add(Dropout(0.4))
+
+    model.add(Flatten())
+    model.add(Dense(10, activation='softmax'))
+
     model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
     model.summary()
     return model
@@ -43,7 +73,8 @@ if __name__ == '__main__':
     tr_labels_one_hot = to_categorical(tr_labels)
     ts_labels_one_hot = to_categorical(ts_labels)
 
-    m = build_model()
-    m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
+    # m = build_model()
+    # m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
+    m = models.load_model("cifar_classifier.h5")
     run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
     run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
