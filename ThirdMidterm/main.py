@@ -125,9 +125,9 @@ if __name__ == '__main__':
     # m = build_model()
     # m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
     m = models.load_model("cifar_classifier.h5")
-    # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
-    # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
+    run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
+    run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
     attack_pattern(m, ts_set[139], ts_labels_one_hot[139], 0.01, True, None, True)
-    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, 10, 0.01)
-    run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary", True)
+    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), 0.01)
+    run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(0.01), True)
