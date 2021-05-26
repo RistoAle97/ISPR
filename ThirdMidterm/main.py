@@ -128,6 +128,7 @@ if __name__ == '__main__':
     # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
     # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
-    attack_pattern(m, ts_set[0], ts_labels_one_hot[0], 0.1, True, None, True)
-    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), 0.01)
-    run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(0.01), True)
+    eps_attack = 0.1
+    attack_pattern(m, ts_set[0], ts_labels_one_hot[0], eps_attack, True, None, True)
+    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), eps_attack)
+    run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(eps_attack), True)
