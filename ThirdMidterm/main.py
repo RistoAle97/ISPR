@@ -9,6 +9,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+from skimage.transform import resize
 
 
 def build_model():
@@ -69,24 +70,48 @@ def run_model(model, tr_ts_set, tr_ts_labels, tr_ts_labels_one_hot, set_labels: 
 
 
 def adversary_pattern(model, pattern, label, eps=2/255.0):
-    pattern = tf.cast(pattern.reshape(1, 32, 32, 3), tf.float32)
-    # record our gradients
+    pattern = tf.cast(np.reshape(pattern, (1, 32, 32, 3)), tf.float32)
     with tf.GradientTape() as tape:
-        # explicitly indicate that our image should be tacked for
-        # gradient updates
         tape.watch(pattern)
-        # use our model to make predictions on the input image and
-        # then compute the loss
         pred = model(pattern)
         loss = MSE(label, pred)
-        # calculate the gradients of loss with respect to the image, then
-        # compute the sign of the gradient
         gradient = tape.gradient(loss, pattern)
         signed_grad = tf.sign(gradient)
-        # construct the image adversary
         adversary = (pattern + (signed_grad * eps)).numpy()
-        # return the image adversary to the calling function
         return adversary
+
+
+def attack_pattern(model, pattern, label, eps, predict: bool, image_reshape, print_prediction: bool):
+    adversary_image = adversary_pattern(m, pattern, label, eps=eps)
+    adversary_image = np.clip(adversary_image * 255, 0, 255).astype("uint8")
+    if predict:
+        out_adversary = np.argmax(model.predict(adversary_image))
+        out_pattern = np.argmax(model.predict(pattern.reshape(1, 32, 32, 3)))
+        if print_prediction:
+            print("True label: {0}, Predicted label: {1}, Predicted adversary label: {2}".
+                  format(classes[np.argmax(label)], classes[out_pattern], classes[out_adversary]))
+
+    adversary_image = adversary_image.reshape((32, 32, 3))
+    image = np.copy(pattern) * 255
+    if image_reshape:
+        adversary_image = resize(adversary_image, image_reshape) * 255
+        image = resize(image, image_reshape) * 255
+
+    Image.fromarray(adversary_image.astype("uint8")).show()
+    Image.fromarray(image.astype("uint8")).show()
+
+
+def add_noise_set(model, patterns, labels, size, eps):
+    patterns_adversary_list = np.copy(patterns)
+    if size != len(patterns):
+        patterns_to_attack = np.random.choice(np.arange(len(ts_set)), size)
+    else:
+        patterns_to_attack = patterns
+
+    for i in patterns_to_attack:
+        patterns_adversary_list[i] = adversary_pattern(model, patterns[i], labels[i], eps=eps).reshape(32, 32, 3)
+
+    return np.array(patterns_adversary_list)
 
 
 if __name__ == '__main__':
@@ -100,18 +125,9 @@ if __name__ == '__main__':
     # m = build_model()
     # m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
     m = models.load_model("cifar_classifier.h5")
-    # pattern_pred = m.predict(tr_set[0].reshape(1, 32, 32, 3))
     # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
     # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
-    # for i in np.random.choice(np.arange(0, len(ts_set)), size=(1,)):
-    image_label = ts_labels_one_hot[0]
-    adversary_image = adversary_pattern(m, ts_set[0], image_label, eps=0.1)
-    out_adversary = np.argmax(m.predict(adversary_image))
-    adversary_image_plot = np.clip(adversary_image * 255, 0, 255).astype("uint8")
-    image = (ts_set[0] * 255).astype("uint8")
-    out_pattern = np.argmax(m.predict(ts_set[0].reshape(1, 32, 32, 3)))
-    Image.fromarray(adversary_image_plot.reshape(32, 32, 3)).show()
-    Image.fromarray(image).show()
-    print("True label: {0}, Predicted label: {1}, Predicted adversary label: {2}".
-          format(classes[np.argmax(image_label)], classes[out_pattern], classes[out_adversary]))
+    attack_pattern(m, ts_set[139], ts_labels_one_hot[139], 0.01, True, None, True)
+    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, 10, 0.01)
+    run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary", True)
