@@ -8,7 +8,6 @@ import tensorflow as tf
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
 from skimage.transform import resize
 
 
@@ -91,14 +90,16 @@ def attack_pattern(model, pattern, label, eps, predict: bool, image_reshape, pri
                   format(classes[np.argmax(label)], classes[out_pattern], classes[out_adversary]))
 
     adversary_image = adversary_image.reshape((32, 32, 3))
-    adversary_image = np.clip(adversary_image * 255, 0, 255).astype("uint8")
+    adversary_image = np.clip(adversary_image * 255, 0, 255)
     image = np.copy(pattern) * 255
     if image_reshape:
         adversary_image = resize(adversary_image, image_reshape) * 255
         image = resize(image, image_reshape) * 255
 
-    Image.fromarray(adversary_image.astype("uint8")).show()
-    Image.fromarray(image.astype("uint8")).show()
+    plt.imshow(adversary_image.astype("uint8"))
+    plt.show()
+    plt.imshow(image.astype("uint8"))
+    plt.show()
 
 
 def add_noise_set(model, patterns, labels, size, eps):
@@ -128,7 +129,7 @@ if __name__ == '__main__':
     # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
     # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
-    eps_attack = 0.01
+    eps_attack = 0.001
     # attack_pattern(m, ts_set[0], ts_labels_one_hot[0], eps_attack, True, None, True)
     ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), eps_attack)
     run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(eps_attack), True)
