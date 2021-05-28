@@ -3,12 +3,12 @@ from keras.models import Sequential
 from keras.utils import to_categorical
 from keras.layers import Conv2D, MaxPool2D, Flatten, Dropout, Dense, BatchNormalization
 from keras import regularizers, models
-from keras.losses import MSE
+from keras.losses import MSE  # CategoricalCrossentropy, MSE
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.transform import resize
+import logging
 
 
 def build_model():
@@ -74,13 +74,15 @@ def adversary_pattern(model, pattern, label, eps=2/255.0):
         tape.watch(pattern)
         pred = model(pattern)
         loss = MSE(label, pred)
+        # loss = CategoricalCrossentropy(from_logits=True)
+        # loss = loss(label.reshape(1, 10), pred)
         gradient = tape.gradient(loss, pattern)
         signed_grad = tf.sign(gradient)
         adversary = (pattern + (signed_grad * eps)).numpy()
         return adversary
 
 
-def attack_pattern(model, pattern, label, eps, predict: bool, image_reshape, print_prediction: bool):
+def attack_pattern(model, pattern, label, eps, predict: bool, print_prediction: bool):
     adversary_image = adversary_pattern(m, pattern, label, eps=eps)
     if predict:
         out_adversary = np.argmax(model.predict(adversary_image))
@@ -92,10 +94,6 @@ def attack_pattern(model, pattern, label, eps, predict: bool, image_reshape, pri
     adversary_image = adversary_image.reshape((32, 32, 3))
     adversary_image = np.clip(adversary_image * 255, 0, 255)
     image = np.copy(pattern) * 255
-    if image_reshape:
-        adversary_image = resize(adversary_image, image_reshape) * 255
-        image = resize(image, image_reshape) * 255
-
     plt.imshow(adversary_image.astype("uint8"))
     plt.show()
     plt.imshow(image.astype("uint8"))
@@ -126,10 +124,17 @@ if __name__ == '__main__':
     # m = build_model()
     # m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
     m = models.load_model("cifar_classifier.h5")
+    # m = models.load_model("my_model_2.h5")
     # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
     # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
-    eps_attack = 0.1
-    attack_pattern(m, ts_set[0], ts_labels_one_hot[0], eps_attack, True, None, True)
-    # ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), eps_attack)
-    # run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(eps_attack), True)
+    eps_attack = 0.001
+    attack_pattern(m, ts_set[0], ts_labels_one_hot[0], eps_attack, True, True)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter("[%(levelname)s] %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), eps_attack)
+    run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(eps_attack), True)
