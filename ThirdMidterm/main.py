@@ -74,8 +74,6 @@ def adversary_pattern(model, pattern, label, eps=2/255.0):
         tape.watch(pattern)
         pred = model(pattern)
         loss = MSE(label, pred)
-        # loss = CategoricalCrossentropy(from_logits=True)
-        # loss = loss(label.reshape(1, 10), pred)
         gradient = tape.gradient(loss, pattern)
         signed_grad = tf.sign(gradient)
         adversary = (pattern + (signed_grad * eps)).numpy()
