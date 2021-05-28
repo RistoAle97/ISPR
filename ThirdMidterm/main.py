@@ -68,20 +68,23 @@ def run_model(model, tr_ts_set, tr_ts_labels, tr_ts_labels_one_hot, set_labels: 
         plt.show()
 
 
-def adversary_pattern(model, pattern, label, eps=2/255.0):
+def adversary_pattern(model, pattern, label, eps=2/255.0, show_noise=False):
     pattern = tf.cast(np.reshape(pattern, (1, 32, 32, 3)), tf.float32)
     with tf.GradientTape() as tape:
         tape.watch(pattern)
         pred = model(pattern)
         loss = MSE(label, pred)
         gradient = tape.gradient(loss, pattern)
+        if show_noise:
+            plt.plot(gradient * eps).show()
+
         signed_grad = tf.sign(gradient)
         adversary = (pattern + (signed_grad * eps)).numpy()
         return adversary
 
 
-def attack_pattern(model, pattern, label, eps, predict: bool, print_prediction: bool):
-    adversary_image = adversary_pattern(m, pattern, label, eps=eps)
+def attack_pattern(model, pattern, label, eps, predict: bool, print_prediction: bool, show_noise=False):
+    adversary_image = adversary_pattern(m, pattern, label, eps=eps, show_noise=show_noise)
     if predict:
         out_adversary = np.argmax(model.predict(adversary_image))
         out_pattern = np.argmax(model.predict(pattern.reshape(1, 32, 32, 3)))
@@ -126,8 +129,8 @@ if __name__ == '__main__':
     # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
     # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
-    eps_attack = 0.001
-    attack_pattern(m, ts_set[0], ts_labels_one_hot[0], eps_attack, True, True)
+    eps_attack = 0.1
+    attack_pattern(m, ts_set[0], ts_labels_one_hot[0], eps_attack, True, True, True)
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
