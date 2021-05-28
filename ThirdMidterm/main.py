@@ -75,11 +75,13 @@ def adversary_pattern(model, pattern, label, eps=2/255.0, show_noise=False):
         pred = model(pattern)
         loss = MSE(label, pred)
         gradient = tape.gradient(loss, pattern)
-        if show_noise:
-            plt.plot(gradient * eps).show()
-
         signed_grad = tf.sign(gradient)
         adversary = (pattern + (signed_grad * eps)).numpy()
+        if show_noise:
+            signed_grad = (signed_grad * eps).numpy()
+            plt.imshow(np.clip(signed_grad.reshape(32, 32, 3) * 255, 0, 1))
+            plt.show()
+
         return adversary
 
 
@@ -129,7 +131,7 @@ if __name__ == '__main__':
     # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
     # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
-    eps_attack = 0.1
+    eps_attack = 0.01
     attack_pattern(m, ts_set[0], ts_labels_one_hot[0], eps_attack, True, True, True)
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
