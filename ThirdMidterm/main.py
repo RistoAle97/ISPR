@@ -115,16 +115,15 @@ if __name__ == '__main__':
 
     # m = build_model()
     # m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
-    # m = models.load_model("cifar_classifier.h5")
-    # m = models.load_model("my_model_2.h5")
-    # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
-    # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
+    m = models.load_model("cifar_classifier.h5")
+    run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", False)
+    run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", False)
 
-    eps_attack = 0.05
+    eps_attacks = [0.001, 0.005, 0.01, 0.05, 0.1]
     m = models.load_model("cifar_classifier.h5")
     attack_m = models.load_model("cifar_classifier_attack.h5")
-    attack_pattern(m, ts_set[329], ts_labels_one_hot[329], eps_attack, True, True, True)
-    attack_pattern(attack_m, ts_set[329], ts_labels_one_hot[329], eps_attack, True, True, False)
+    # attack_pattern(m, ts_set[329], ts_labels_one_hot[329], eps_attack, True, True, True)
+    # attack_pattern(attack_m, ts_set[329], ts_labels_one_hot[329], eps_attack, True, True, False)
     """m = build_model()
     tr_set_attack = add_noise_set(m, tr_set, tr_labels_one_hot, len(tr_set), eps_attack)
     print("tr set attacked")
@@ -135,8 +134,11 @@ if __name__ == '__main__':
           epochs=10, workers=8, use_multiprocessing=True, verbose=2)
     m.save("cifar_classifier_attack.h5")"""
 
-    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), None)
-    print("Test set non defense model")
-    run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(eps_attack), True)
-    print("\nTest set defense model")
-    run_model(attack_m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test defense eps={0}".format(eps_attack), True)
+    for eps_attack in eps_attacks:
+        ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), eps_attack)
+        print("Test set non defense model")
+        run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(eps_attack), False)
+        print("Test set defense model")
+        run_model(attack_m, ts_set_adversary, ts_labels, ts_labels_one_hot,
+                  "Test defense eps={0}".format(eps_attack), False)
+        print("Eps: {0}, attack ended\n".format(eps_attack))
