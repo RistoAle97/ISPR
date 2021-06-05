@@ -3,28 +3,14 @@ from keras.models import Sequential
 from keras.utils import to_categorical
 from keras.layers import Conv2D, MaxPool2D, Flatten, Dropout, Dense, BatchNormalization
 from keras import regularizers, models
-from keras.losses import MSE  # CategoricalCrossentropy, MSE
+from keras.losses import MSE
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import numpy as np
 import matplotlib.pyplot as plt
-import logging
 
 
 def build_model():
-    """model = Sequential()
-    model.add(Conv2D(32, 3, padding="same", activation="relu", input_shape=[32, 32, 3]))
-    model.add(Conv2D(32, 3, padding="same", activation="relu"))
-    model.add(MaxPool2D(2, 2, padding="same"))
-    model.add(Conv2D(32, 3, padding="same", activation="relu"))
-    model.add(Conv2D(32, 3, padding="same", activation="relu"))
-    model.add(MaxPool2D(2, 2, padding="same"))
-    model.add(Flatten())
-    model.add(Dropout(0.5))
-    model.add(Dense(256, activation="relu"))
-    model.add(Dense(10, activation="softmax"))
-    model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
-    model.summary()"""
     weight_decay = 1e-4
     model = Sequential()
     model.add(Conv2D(32, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay),
@@ -86,7 +72,7 @@ def adversary_pattern(model, pattern, label, eps=2/255.0, show_noise=False):
 
 
 def attack_pattern(model, pattern, label, eps, predict: bool, print_prediction: bool, show_noise=False):
-    adversary_image = adversary_pattern(m, pattern, label, eps=eps, show_noise=show_noise)
+    adversary_image = adversary_pattern(model, pattern, label, eps=eps, show_noise=show_noise)
     if predict:
         out_adversary = np.argmax(model.predict(adversary_image))
         out_pattern = np.argmax(model.predict(pattern.reshape(1, 32, 32, 3)))
@@ -111,6 +97,9 @@ def add_noise_set(model, patterns, labels, size, eps):
         patterns_to_attack = np.arange(len(patterns))
 
     for i in patterns_to_attack:
+        if not eps:
+            eps = np.random.rand(1)*0.1
+
         patterns_adversary_list[i] = adversary_pattern(model, patterns[i], labels[i], eps=eps).reshape(32, 32, 3)
 
     return np.array(patterns_adversary_list)
@@ -126,18 +115,28 @@ if __name__ == '__main__':
 
     # m = build_model()
     # m.fit(tr_set, tr_labels_one_hot, epochs=10, workers=16, use_multiprocessing=True)
-    m = models.load_model("cifar_classifier.h5")
+    # m = models.load_model("cifar_classifier.h5")
     # m = models.load_model("my_model_2.h5")
     # run_model(m, tr_set, tr_labels, tr_labels_one_hot, "Training", True)
     # run_model(m, ts_set, ts_labels, ts_labels_one_hot, "Test", True)
 
-    eps_attack = 0.01
-    attack_pattern(m, ts_set[0], ts_labels_one_hot[0], eps_attack, True, True, True)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter("[%(levelname)s] %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), eps_attack)
+    eps_attack = 0.05
+    m = models.load_model("cifar_classifier.h5")
+    attack_m = models.load_model("cifar_classifier_attack.h5")
+    attack_pattern(m, ts_set[329], ts_labels_one_hot[329], eps_attack, True, True, True)
+    attack_pattern(attack_m, ts_set[329], ts_labels_one_hot[329], eps_attack, True, True, False)
+    """m = build_model()
+    tr_set_attack = add_noise_set(m, tr_set, tr_labels_one_hot, len(tr_set), eps_attack)
+    print("tr set attacked")
+    tr_set_defense = np.append(tr_set, tr_set_attack, axis=0)
+    tr_set_defense_labels = np.append(tr_labels, tr_labels, axis=0)
+    m.fit(tr_set_defense,
+          to_categorical(tr_set_defense_labels), batch_size=64, validation_data=(ts_set, ts_labels_one_hot),
+          epochs=10, workers=8, use_multiprocessing=True, verbose=2)
+    m.save("cifar_classifier_attack.h5")"""
+
+    ts_set_adversary = add_noise_set(m, ts_set, ts_labels_one_hot, len(ts_set), None)
+    print("Test set non defense model")
     run_model(m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test adversary eps={0}".format(eps_attack), True)
+    print("\nTest set defense model")
+    run_model(attack_m, ts_set_adversary, ts_labels, ts_labels_one_hot, "Test defense eps={0}".format(eps_attack), True)
