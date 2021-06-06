@@ -19,7 +19,7 @@ def build_model():
     model.add(Conv2D(32, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(BatchNormalization())
     model.add(MaxPool2D((2, 2), 2))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.3))
 
     model.add(Conv2D(64, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(BatchNormalization())
@@ -33,7 +33,7 @@ def build_model():
     model.add(Conv2D(128, (3, 3), padding='same', activation="relu", kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(BatchNormalization())
     model.add(MaxPool2D((2, 2), 2))
-    model.add(Dropout(0.4))
+    model.add(Dropout(0.3))
 
     model.add(Flatten())
     model.add(Dense(10, activation='softmax'))
@@ -54,7 +54,7 @@ def run_model(model, tr_ts_set, tr_ts_labels, tr_ts_labels_one_hot, set_labels: 
         plt.show()
 
 
-def adversary_pattern(model, pattern, label, eps=2/255.0, show_noise=False):
+def adversary_pattern(model, pattern, label, eps, show_noise=False):
     pattern = tf.cast(np.reshape(pattern, (1, 32, 32, 3)), tf.float32)
     with tf.GradientTape() as tape:
         tape.watch(pattern)
